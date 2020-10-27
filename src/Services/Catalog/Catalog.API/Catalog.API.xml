@@ -6,7 +6,7 @@
     <members>
         <member name="M:Microsoft.eShopOnContainers.Services.Catalog.API.Controllers.CatalogController.ItemsAsync(System.Int32,System.Int32,System.String)">
             <summary>
-            查询all by page
+            查询商品并分页
             </summary>
             <param name="pageSize"></param>
             <param name="pageIndex"></param>
@@ -15,14 +15,14 @@
         </member>
         <member name="M:Microsoft.eShopOnContainers.Services.Catalog.API.Controllers.CatalogController.ItemByIdAsync(System.Int32)">
             <summary>
-            查询某个
+            查询商品详情
             </summary>
             <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:Microsoft.eShopOnContainers.Services.Catalog.API.Controllers.CatalogController.ItemsWithNameAsync(System.String,System.Int32,System.Int32)">
             <summary>
-            名字模糊查询
+            根据名字模糊查询
             </summary>
             <param name="name"></param>
             <param name="pageSize"></param>

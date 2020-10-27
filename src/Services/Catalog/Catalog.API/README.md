@@ -23,7 +23,6 @@ Catalog microservice（目录微服务）维护着所有产品信息，包括库
 - [x] `Serilog`；
 - [x] 选项配置；
 - [x] `Autofac`；
-- [x] 从`Httpcontext`中获取指定信息；
 - [x] 跨域；
 - [x] 单元测试+功能测试；  
 - [x] `Grpc`；
@@ -34,7 +33,7 @@ Catalog microservice（目录微服务）维护着所有产品信息，包括库
 - [ ] 充血模型；
 - [ ] 上传图片；
 - [ ] `IOptionsSnapshot`热更新；
-- [ ] 集成事件/事件日志；
+- [ ] 集成事件/事件日志`EventLog`；
 - [ ] 事件服务`EventService`；
 
 
