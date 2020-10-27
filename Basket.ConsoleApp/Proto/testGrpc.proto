@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "Basket.API";
+package BasketApi;
+
+service TestGrpc {
+	rpc GetBasketById(Request) returns (Response) {}
+}
+
+message Request {
+	string id = 1;
+}
+
+message Response {
+	string id = 2;
+}
