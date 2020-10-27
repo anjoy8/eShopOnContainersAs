@@ -32,13 +32,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         // GET api/v1/[controller]/items[?pageSize=3&pageIndex=10]
-        /// <summary>
-        /// 查询商品并分页
-        /// </summary>
-        /// <param name="pageSize"></param>
-        /// <param name="pageIndex"></param>
-        /// <param name="ids"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("items")]
         [ProducesResponseType(typeof(PaginatedItemsViewModel<CatalogItem>), (int)HttpStatusCode.OK)]
@@ -102,12 +95,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
             return items;
         }
 
-
-        /// <summary>
-        /// 查询商品详情
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("items/{id:int}")]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -135,15 +122,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
             return NotFound();
         }
 
-        
         // GET api/v1/[controller]/items/withname/samplename[?pageSize=3&pageIndex=10]
-        /// <summary>
-        /// 根据名字模糊查询
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="pageSize"></param>
-        /// <param name="pageIndex"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("items/withname/{name:minlength(1)}")]
         [ProducesResponseType(typeof(PaginatedItemsViewModel<CatalogItem>), (int)HttpStatusCode.OK)]
@@ -165,14 +144,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         // GET api/v1/[controller]/items/type/1/brand[?pageSize=3&pageIndex=10]
-        /// <summary>
-        /// 根据类型+商家查询
-        /// </summary>
-        /// <param name="catalogTypeId"></param>
-        /// <param name="catalogBrandId"></param>
-        /// <param name="pageSize"></param>
-        /// <param name="pageIndex"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("items/type/{catalogTypeId}/brand/{catalogBrandId:int?}")]
         [ProducesResponseType(typeof(PaginatedItemsViewModel<CatalogItem>), (int)HttpStatusCode.OK)]
@@ -201,13 +172,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         // GET api/v1/[controller]/items/type/all/brand[?pageSize=3&pageIndex=10]
-        /// <summary>
-        /// 根据商家查询
-        /// </summary>
-        /// <param name="catalogBrandId"></param>
-        /// <param name="pageSize"></param>
-        /// <param name="pageIndex"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("items/type/all/brand/{catalogBrandId:int?}")]
         [ProducesResponseType(typeof(PaginatedItemsViewModel<CatalogItem>), (int)HttpStatusCode.OK)]
@@ -234,10 +198,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         // GET api/v1/[controller]/CatalogTypes
-        /// <summary>
-        /// 所有商品类别
-        /// </summary>
-        /// <returns></returns>
         [HttpGet]
         [Route("catalogtypes")]
         [ProducesResponseType(typeof(List<CatalogType>), (int)HttpStatusCode.OK)]
@@ -247,10 +207,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         // GET api/v1/[controller]/CatalogBrands
-        /// <summary>
-        /// 所有商家
-        /// </summary>
-        /// <returns></returns>
         [HttpGet]
         [Route("catalogbrands")]
         [ProducesResponseType(typeof(List<CatalogBrand>), (int)HttpStatusCode.OK)]
@@ -260,12 +216,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         //PUT api/v1/[controller]/items
-        /// <summary>
-        /// 更新商品
-        /// 发布事件
-        /// </summary>
-        /// <param name="productToUpdate"></param>
-        /// <returns></returns>
         [Route("items")]
         [HttpPut]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -306,11 +256,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         //POST api/v1/[controller]/items
-        /// <summary>
-        /// 添加商品
-        /// </summary>
-        /// <param name="product"></param>
-        /// <returns></returns>
         [Route("items")]
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.Created)]
@@ -334,11 +279,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         }
 
         //DELETE api/v1/[controller]/id
-        /// <summary>
-        /// 删除商品
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         [Route("{id}")]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -359,11 +299,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// 修改图片地址
-        /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
         private List<CatalogItem> ChangeUriPlaceholder(List<CatalogItem> items)
         {
             var baseUri = _settings.PicBaseUrl;

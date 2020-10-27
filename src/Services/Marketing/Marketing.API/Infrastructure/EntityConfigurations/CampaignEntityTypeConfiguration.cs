@@ -14,7 +14,7 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Infrastructure.Enti
             builder.HasKey(m => m.Id);
 
             builder.Property(m => m.Id)
-                .UseHiLo("campaign_hilo")
+                .ForSqlServerUseSequenceHiLo("campaign_hilo")
                 .IsRequired();
 
             builder.Property(m => m.Name)

@@ -4,9 +4,6 @@ using System.Linq;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Extensions
 {
-    /// <summary>
-    /// linq扩展工具
-    /// </summary>
     public static class LinqSelectExtensions
     {
         public static IEnumerable<SelectTryResult<TSource, TResult>> SelectTry<TSource, TResult>(this IEnumerable<TSource> enumerable, Func<TSource, TResult> selector)

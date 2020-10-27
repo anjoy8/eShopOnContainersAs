@@ -5,6 +5,7 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using WebMVC.Services.ModelDTOs;
 using Xunit;
 
 namespace Basket.FunctionalTests
@@ -62,7 +63,7 @@ namespace Basket.FunctionalTests
 
             order.Items.Add(new BasketItem
             {
-                ProductId = 1,
+                ProductId = "1",
                 ProductName = ".NET Bot Black Hoodie",
                 UnitPrice = 10,
                 Quantity = 1
@@ -73,7 +74,7 @@ namespace Basket.FunctionalTests
 
         string BuildCheckout()
         {
-            var checkoutBasket = new 
+            var checkoutBasket = new BasketDTO()
             {
                 City = "city",
                 Street = "street",

@@ -2,9 +2,6 @@
 
 namespace Basket.API.Model
 {
-    /// <summary>
-    /// 购物车结算
-    /// </summary>
     public class BasketCheckout
     {
         public string City { get; set; }

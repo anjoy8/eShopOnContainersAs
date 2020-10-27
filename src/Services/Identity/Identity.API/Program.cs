@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.eShopOnContainers.Services.Identity.API.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -30,12 +29,10 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 var host = BuildWebHost(configuration, args);
 
                 Log.Information("Applying migrations ({ApplicationContext})...", AppName);
-                //持久化授权数据
                 host.MigrateDbContext<PersistedGrantDbContext>((_, __) => { })
-                    //identity 用户数据
                     .MigrateDbContext<ApplicationDbContext>((context, services) =>
                     {
-                        var env = services.GetService<IWebHostEnvironment>();
+                        var env = services.GetService<IHostingEnvironment>();
                         var logger = services.GetService<ILogger<ApplicationDbContextSeed>>();
                         var settings = services.GetService<IOptions<AppSettings>>();
 
@@ -43,7 +40,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                             .SeedAsync(context, env, logger, settings)
                             .Wait();
                     })
-                    //配置数据
                     .MigrateDbContext<ConfigurationDbContext>((context, services) =>
                     {
                         new ConfigurationDbContextSeed()
@@ -70,19 +66,13 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
         private static IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .CaptureStartupErrors(false)
-                .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
                 .UseStartup<Startup>()
-                .UseUrls("http://*:5105")
+                .UseApplicationInsights()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(configuration)
                 .UseSerilog()
                 .Build();
 
-        /// <summary>
-        /// Serilog 日志配置
-        /// 写入到了 seq 
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
         private static Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         {
             var seqServerUrl = configuration["Serilog:SeqServerUrl"];
@@ -98,10 +88,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 .CreateLogger();
         }
 
-        /// <summary>
-        /// 自定义配置，并热更新
-        /// </summary>
-        /// <returns></returns>
         private static IConfiguration GetConfiguration()
         {
             var builder = new ConfigurationBuilder()

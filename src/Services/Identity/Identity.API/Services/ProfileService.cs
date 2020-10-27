@@ -12,9 +12,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Services
 {
-    /// <summary>
-    /// 配置数据服务，获取请求上下文的数据
-    /// </summary>
     public class ProfileService : IProfileService
     {
         private readonly UserManager<ApplicationUser> _userManager;

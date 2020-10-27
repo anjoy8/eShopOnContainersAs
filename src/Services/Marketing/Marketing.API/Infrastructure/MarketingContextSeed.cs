@@ -3,7 +3,6 @@
     using Microsoft.eShopOnContainers.Services.Marketing.API.Model;
     using Microsoft.Extensions.Logging;
     using Polly;
-    using Polly.Retry;
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
@@ -69,7 +68,7 @@
             };
         }
      
-        private AsyncRetryPolicy CreatePolicy(int retries, ILogger<MarketingContextSeed> logger, string prefix)
+        private Policy CreatePolicy(int retries, ILogger<MarketingContextSeed> logger, string prefix)
         {
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(

@@ -18,48 +18,32 @@ namespace Ordering.Infrastructure.EntityConfigurations
             paymentConfiguration.Ignore(b => b.DomainEvents);
 
             paymentConfiguration.Property(b => b.Id)
-                .UseHiLo("paymentseq", OrderingContext.DEFAULT_SCHEMA);
+                .ForSqlServerUseSequenceHiLo("paymentseq", OrderingContext.DEFAULT_SCHEMA);
 
             paymentConfiguration.Property<int>("BuyerId")
                 .IsRequired();
 
-            paymentConfiguration
-                .Property<string>("_cardHolderName")
-                .UsePropertyAccessMode(PropertyAccessMode.Field)
-                .HasColumnName("CardHolderName")
+            paymentConfiguration.Property<string>("CardHolderName")
                 .HasMaxLength(200)
                 .IsRequired();
 
-            paymentConfiguration
-                .Property<string>("_alias")
-                .UsePropertyAccessMode(PropertyAccessMode.Field)
-                .HasColumnName("Alias")
+            paymentConfiguration.Property<string>("Alias")
                 .HasMaxLength(200)
                 .IsRequired();
 
-            paymentConfiguration
-                .Property<string>("_cardNumber")
-                .UsePropertyAccessMode(PropertyAccessMode.Field)
-                .HasColumnName("CardNumber")
+            paymentConfiguration.Property<string>("CardNumber")
                 .HasMaxLength(25)
                 .IsRequired();
 
-            paymentConfiguration
-                .Property<DateTime>("_expiration")
-                .UsePropertyAccessMode(PropertyAccessMode.Field)
-                .HasColumnName("Expiration")
-                .HasMaxLength(25)
+            paymentConfiguration.Property<DateTime>("Expiration")
                 .IsRequired();
 
-            paymentConfiguration
-                .Property<int>("_cardTypeId")
-                .UsePropertyAccessMode(PropertyAccessMode.Field)
-                .HasColumnName("CardTypeId")
+            paymentConfiguration.Property<int>("CardTypeId")
                 .IsRequired();
 
             paymentConfiguration.HasOne(p => p.CardType)
                 .WithMany()
-                .HasForeignKey("_cardTypeId");
+                .HasForeignKey("CardTypeId");
         }
     }
 }

@@ -13,13 +13,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
 {
     public class ConfigurationDbContextSeed
     {
-        /// <summary>
-        /// 生成 配置数据 种子数据
-        /// 包括客户端，资源，认证资源
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
         public async Task SeedAsync(ConfigurationDbContext context,IConfiguration configuration)
         {
            

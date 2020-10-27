@@ -1,7 +1,9 @@
 ﻿using Devspaces.Support;
 using HealthChecks.UI.Client;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -13,9 +15,9 @@ using Microsoft.eShopOnContainers.WebMVC.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
+using Polly;
+using Polly.Extensions.Http;
 using StackExchange.Redis;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -38,25 +40,29 @@ namespace Microsoft.eShopOnContainers.WebMVC
         // This method gets called by the runtime. Use this method to add services to the IoC container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews()
-                .Services
-                .AddAppInsight(Configuration)
-                .AddHealthChecks(Configuration)
-                .AddCustomMvc(Configuration)
-                .AddDevspaces()
-                .AddHttpClientServices(Configuration);
-
-            IdentityModelEventSource.ShowPII  = true;       // Caution! Do NOT use in production: https://aka.ms/IdentityModel/PII
-            
-            services.AddControllers();
-
-            services.AddCustomAuthentication(Configuration);
+            services.AddAppInsight(Configuration)
+                    .AddHealthChecks(Configuration)
+                    .AddCustomMvc(Configuration)
+                    .AddDevspaces()
+                    .AddHttpClientServices(Configuration)
+                    //.AddHttpClientLogging(Configuration)  //Opt-in HttpClientLogging config
+                    .AddCustomAuthentication(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+            //loggerFactory.AddAzureWebAppDiagnostics();
+            //loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
+
+            app.UseHealthChecks("/hc", new HealthCheckOptions()
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -64,44 +70,43 @@ namespace Microsoft.eShopOnContainers.WebMVC
             else
             {
                 app.UseExceptionHandler("/Error");
+                app.UseHsts();
             }
 
             var pathBase = Configuration["PATH_BASE"];
-
             if (!string.IsNullOrEmpty(pathBase))
             {
+                loggerFactory.CreateLogger<Startup>().LogDebug("Using PATH BASE '{PathBase}'", pathBase);
                 app.UsePathBase(pathBase);
             }
 
-            app.UseStaticFiles();
+            app.UseHealthChecks("/liveness", new HealthCheckOptions
+            {
+                Predicate = r => r.Name.Contains("self")
+            });
+
             app.UseSession();
+            app.UseStaticFiles();
 
             if (Configuration.GetValue<bool>("UseLoadTest"))
             {
                 app.UseMiddleware<ByPassAuthMiddleware>();
             }
 
-            WebContextSeed.Seed(app, env);
-
-            app.UseRouting();
-            
             app.UseAuthentication();
-            app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+            WebContextSeed.Seed(app, env, loggerFactory);
+
+            app.UseHttpsRedirection();
+            app.UseMvc(routes =>
             {
-                endpoints.MapControllerRoute("default", "{controller=Catalog}/{action=Index}/{id?}");
-                endpoints.MapControllerRoute("defaultError", "{controller=Error}/{action=Error}");
-                endpoints.MapControllers();
-                endpoints.MapHealthChecks("/liveness", new HealthCheckOptions
-                {
-                    Predicate = r => r.Name.Contains("self")
-                });
-                endpoints.MapHealthChecks("/hc", new HealthCheckOptions()
-                {
-                    Predicate = _ => true,
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Catalog}/{action=Index}/{id?}");
+
+                routes.MapRoute(
+                    name: "defaultError",
+                    template: "{controller=Error}/{action=Error}");
             });
         }
     }
@@ -112,7 +117,20 @@ namespace Microsoft.eShopOnContainers.WebMVC
         public static IServiceCollection AddAppInsight(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddApplicationInsightsTelemetry(configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
+            var orchestratorType = configuration.GetValue<string>("OrchestratorType");
+
+            if (orchestratorType?.ToUpper() == "K8S")
+            {
+                // Enable K8s telemetry initializer
+                services.AddApplicationInsightsKubernetesEnricher();
+            }
+
+            if (orchestratorType?.ToUpper() == "SF")
+            {
+                // Enable SF telemetry initializer
+                services.AddSingleton<ITelemetryInitializer>((serviceProvider) =>
+                    new FabricTelemetryInitializer());
+            }
 
             return services;
         }
@@ -121,8 +139,10 @@ namespace Microsoft.eShopOnContainers.WebMVC
         {
             services.AddHealthChecks()
                 .AddCheck("self", () => HealthCheckResult.Healthy())
-                .AddUrlGroup(new Uri(configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" });
-
+                .AddUrlGroup(new Uri(configuration["PurchaseUrlHC"]), name: "purchaseapigw-check", tags: new string[] { "purchaseapigw" })
+                .AddUrlGroup(new Uri(configuration["MarketingUrlHC"]), name: "marketingapigw-check", tags: new string[] { "marketingapigw" })
+                .AddUrlGroup(new Uri(configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" });                
+            
             return services;
         }
 
@@ -130,8 +150,11 @@ namespace Microsoft.eShopOnContainers.WebMVC
         {
             services.AddOptions();
             services.Configure<AppSettings>(configuration);
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
             services.AddSession();
-            services.AddDistributedMemoryCache();
 
             if (configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
             {
@@ -141,11 +164,10 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 })
                 .PersistKeysToRedis(ConnectionMultiplexer.Connect(configuration["DPConnectionString"]), "DataProtection-Keys");
             }
-
             return services;
         }
 
-        // Adds all Http client services
+        // Adds all Http client services (like Service-Agents) using resilient Http requests based on HttpClient factory and Polly's policies 
         public static IServiceCollection AddHttpClientServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -161,22 +183,32 @@ namespace Microsoft.eShopOnContainers.WebMVC
             services.AddHttpClient<IBasketService, BasketService>()
                    .SetHandlerLifetime(TimeSpan.FromMinutes(5))  //Sample. Default lifetime is 2 minutes
                    .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
+                   .AddPolicyHandler(GetRetryPolicy())
+                   .AddPolicyHandler(GetCircuitBreakerPolicy())
                    .AddDevspacesSupport();
 
             services.AddHttpClient<ICatalogService, CatalogService>()
+                   .AddPolicyHandler(GetRetryPolicy())
+                   .AddPolicyHandler(GetCircuitBreakerPolicy())
                    .AddDevspacesSupport();
 
             services.AddHttpClient<IOrderingService, OrderingService>()
                  .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
                  .AddHttpMessageHandler<HttpClientRequestIdDelegatingHandler>()
+                 .AddPolicyHandler(GetRetryPolicy())
+                 .AddPolicyHandler(GetCircuitBreakerPolicy())
                  .AddDevspacesSupport();
 
             services.AddHttpClient<ICampaignService, CampaignService>()
                 .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy())
                 .AddDevspacesSupport();
 
             services.AddHttpClient<ILocationService, LocationService>()
                .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
+               .AddPolicyHandler(GetRetryPolicy())
+               .AddPolicyHandler(GetCircuitBreakerPolicy())
                .AddDevspacesSupport();
 
             //add custom application services
@@ -185,6 +217,21 @@ namespace Microsoft.eShopOnContainers.WebMVC
             return services;
         }
 
+        public static IServiceCollection AddHttpClientLogging(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddLogging(b =>
+            {
+                b.AddFilter((category, level) => true); // Spam the world with logs.
+
+                // Add console logger so we can see all the logging produced by the client by default.
+                b.AddConsole(c => c.IncludeScopes = true);
+
+                // Add console logger
+                b.AddDebug();
+            });
+
+            return services;
+        }
 
         public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
@@ -198,9 +245,9 @@ namespace Microsoft.eShopOnContainers.WebMVC
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddCookie(setup => setup.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime))
+            .AddCookie(setup=>setup.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime))
             .AddOpenIdConnect(options =>
             {
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -219,10 +266,25 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 options.Scope.Add("marketing");
                 options.Scope.Add("locations");
                 options.Scope.Add("webshoppingagg");
-                options.Scope.Add("orders.signalrhub");
+                options.Scope.Add("orders.signalrhub");       
             });
 
             return services;
+        }
+
+        static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+              .HandleTransientHttpError()
+              .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+              .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+        }
+        static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
         }
     }
 }

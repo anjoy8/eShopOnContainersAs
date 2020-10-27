@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API.Infrastructure.Filt
 {
     internal class AuthorizeCheckOperationFilter : IOperationFilter
     {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        public void Apply(Operation operation, OperationFilterContext context)
         {
             // Check for authorize attribute
             var hasAuthorize = context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() ||
@@ -17,21 +17,16 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API.Infrastructure.Filt
 
             if (!hasAuthorize) return;
 
-            operation.Responses.TryAdd("401", new OpenApiResponse() { Description = "Unauthorized" });
-            operation.Responses.TryAdd("403", new OpenApiResponse() { Description = "Forbidden" });
+            operation.Responses.TryAdd("401", new Response { Description = "Unauthorized" });
+            operation.Responses.TryAdd("403", new Response { Description = "Forbidden" });
 
-            var oAuthScheme = new OpenApiSecurityScheme
+            operation.Security = new List<IDictionary<string, IEnumerable<string>>>
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
-            };
-
-            operation.Security = new List<OpenApiSecurityRequirement>
+                new Dictionary<string, IEnumerable<string>>
                 {
-                    new OpenApiSecurityRequirement
-                    {
-                        [ oAuthScheme ] = new [] { "locationsapi" }
-                    }
-                };
+                    { "oauth2", new [] { "locationsapi" } }
+                }
+            };
         }
     }
 }

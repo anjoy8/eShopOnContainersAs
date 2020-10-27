@@ -10,7 +10,6 @@
     using Microsoft.Extensions.Options;
     using Ordering.Infrastructure;
     using Polly;
-    using Polly.Retry;
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
@@ -20,7 +19,7 @@
 
     public class OrderingContextSeed
     {
-        public  async Task SeedAsync(OrderingContext context, IWebHostEnvironment env,IOptions<OrderingSettings> settings, ILogger<OrderingContextSeed> logger)
+        public  async Task SeedAsync(OrderingContext context, IHostingEnvironment env,IOptions<OrderingSettings> settings, ILogger<OrderingContextSeed> logger)
         {
             var policy = CreatePolicy(logger, nameof(OrderingContextSeed));
 
@@ -175,7 +174,7 @@
         }
 
      
-        private AsyncRetryPolicy CreatePolicy( ILogger<OrderingContextSeed> logger, string prefix, int retries =3)
+        private Policy CreatePolicy( ILogger<OrderingContextSeed> logger, string prefix, int retries =3)
         {
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(

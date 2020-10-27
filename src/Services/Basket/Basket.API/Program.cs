@@ -2,12 +2,11 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.IO;
-using System.Net;
 
 namespace Microsoft.eShopOnContainers.Services.Basket.API
 {
@@ -18,18 +17,15 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
         public static int Main(string[] args)
         {
-            // 配置
             var configuration = GetConfiguration();
 
             Log.Logger = CreateSerilogLogger(configuration);
 
             try
             {
-                // 创建webhost宿主
                 Log.Information("Configuring web host ({ApplicationContext})...", AppName);
                 var host = BuildWebHost(configuration, args);
 
-                // 开启webhost
                 Log.Information("Starting web host ({ApplicationContext})...", AppName);
                 host.Run();
 
@@ -48,43 +44,16 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
         private static IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                // 捕获启动错误
                 .CaptureStartupErrors(false)
-                // 配置kestrel服务器
-                //.ConfigureKestrel(options =>
-                //{
-                //    // 自定义监听端口和协议
-                //    var ports = GetDefinedPorts(configuration);
-                //    options.Listen(IPAddress.Any, ports.httpPort, listenOptions =>
-                //    {
-                //        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-                //    });
-
-                //    options.Listen(IPAddress.Any, ports.grpcPort, listenOptions =>
-                //    {
-                //        listenOptions.Protocols = HttpProtocols.Http2;
-                //    });
-
-                //})
-                // 应用配置
-                .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
-                // 自定义中断中间件
                 .UseFailing(options =>
-                {
-                    options.ConfigPath = "/Failing";
-                    options.NotFilteredPaths.AddRange(new[] { "/hc", "/liveness" });
-                })
+                    options.ConfigPath = "/Failing")
                 .UseStartup<Startup>()
-                .UseUrls("https://*:5103")
+                .UseApplicationInsights()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(configuration)
                 .UseSerilog()
                 .Build();
 
-        /// <summary>
-        /// 创建Serilog日志服务
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
         private static Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         {
             var seqServerUrl = configuration["Serilog:SeqServerUrl"];
@@ -118,13 +87,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             }
 
             return builder.Build();
-        }
-
-        private static (int httpPort, int grpcPort) GetDefinedPorts(IConfiguration config)
-        {
-            var grpcPort = config.GetValue("GRPC_PORT", 5001);
-            var port = config.GetValue("PORT", 80);
-            return (port, grpcPort);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Ordering.API.Application.Models
         {
             return new OrderItemDTO()
             {
-                ProductId = item.ProductId,
+                ProductId = int.TryParse(item.ProductId, out int id) ? id : -1,
                 ProductName = item.ProductName,
                 PictureUrl = item.PictureUrl,
                 UnitPrice = item.UnitPrice,

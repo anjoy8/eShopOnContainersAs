@@ -8,7 +8,6 @@ using Xunit;
 
 namespace Marketing.FunctionalTests
 {
-    [Collection("Sequential")]
     public class UserLocationRoleScenarios
         : UserLocationRoleScenariosBase
     {

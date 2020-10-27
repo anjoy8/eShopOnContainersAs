@@ -75,7 +75,7 @@ namespace Basket.FunctionalTests
                 {
                     Id = "basketId",
                     PictureUrl = "pictureurl",
-                    ProductId = 1,
+                    ProductId = "productId",
                     ProductName = "productName",
                     Quantity = 1,
                     UnitPrice = 1

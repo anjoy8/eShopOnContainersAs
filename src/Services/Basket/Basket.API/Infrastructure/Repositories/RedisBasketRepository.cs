@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.eShopOnContainers.Services.Basket.API.Infrastructure.Repositories
 {
-    /// <summary>
-    /// 基于Redis持久化的购物车仓储实现类
-    /// </summary>
     public class RedisBasketRepository : IBasketRepository
     {
         private readonly ILogger<RedisBasketRepository> _logger;
@@ -31,7 +28,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Infrastructure.Reposit
 
         public IEnumerable<string> GetUsers()
         {
-            var server = GetServer();
+            var server = GetServer();          
             var data = server.Keys();
 
             return data?.Select(k => k.ToString());

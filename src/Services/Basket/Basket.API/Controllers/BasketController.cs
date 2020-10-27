@@ -7,9 +7,7 @@ using Microsoft.eShopOnContainers.Services.Basket.API.Model;
 using Microsoft.eShopOnContainers.Services.Basket.API.Services;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
@@ -36,11 +34,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
             _eventBus = eventBus;
         }
 
-        /// <summary>
-        /// 查询
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(CustomerBasket), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<CustomerBasket>> GetBasketByIdAsync(string id)
@@ -50,11 +43,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
             return Ok(basket ?? new CustomerBasket(id));
         }
 
-        /// <summary>
-        /// 更新
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(CustomerBasket), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<CustomerBasket>> UpdateBasketAsync([FromBody]CustomerBasket value)
@@ -62,12 +50,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
             return Ok(await _repository.UpdateBasketAsync(value));
         }
 
-        /// <summary>
-        /// 结账
-        /// </summary>
-        /// <param name="basketCheckout"></param>
-        /// <param name="requestId"></param>
-        /// <returns></returns>
         [Route("checkout")]
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
@@ -86,7 +68,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
                 return BadRequest();
             }
 
-            var userName = this.HttpContext.User.FindFirst(x => x.Type == ClaimTypes.Name).Value;
+            var userName = User.FindFirst(x => x.Type == "unique_name").Value;
 
             var eventMessage = new UserCheckoutAcceptedIntegrationEvent(userId, userName, basketCheckout.City, basketCheckout.Street,
                 basketCheckout.State, basketCheckout.Country, basketCheckout.ZipCode, basketCheckout.CardNumber, basketCheckout.CardHolderName,
@@ -97,6 +79,8 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
             // order creation process
             try
             {
+                _logger.LogInformation("----- Publishing integration event: {IntegrationEventId} from {AppName} - ({@IntegrationEvent})", eventMessage.Id, Program.AppName, eventMessage);
+
                 _eventBus.Publish(eventMessage);
             }
             catch (Exception ex)
@@ -109,11 +93,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
             return Accepted();
         }
 
-        /// <summary>
-        /// 删除
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         // DELETE api/values/5
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]

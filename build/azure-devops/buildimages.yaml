@@ -10,20 +10,19 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - bash: docker-compose -f src/docker-compose.yml build ${{ parameters.services }}
-    displayName: Compose build ${{ parameters.services }}
+  - bash: docker-compose build ${{ parameters.services }}
+    displayName: Create multiarch manifest
     env:
-      TAG: ${{ variables['Build.SourceBranchName'] }}
+      TAG: ${{ variables['Build.SourceBranchName'] }}    
 - job: BuildContainersForPR_Windows
-  condition: False
-  # condition: eq('${{ variables['Build.Reason'] }}', 'PullRequest')
+  condition: eq('${{ variables['Build.Reason'] }}', 'PullRequest')
   pool:
     vmImage: 'windows-2019'
   steps:
-  - bash: docker-compose f src/docker-compose.yml build ${{ parameters.services }}
-    displayName: Compose build ${{ parameters.services }}
+  - bash: docker-compose build ${{ parameters.services }}
+    displayName: Create multiarch manifest
     env:
-      TAG: ${{ variables['Build.SourceBranchName'] }}
+      TAG: ${{ variables['Build.SourceBranchName'] }} 
       PLATFORM: win
       NODE_IMAGE: stefanscherer/node-windows:10
 - job: BuildLinux
@@ -37,7 +36,7 @@ jobs:
       dockerComposeCommand: 'build ${{ parameters.services }}'
       containerregistrytype: Container Registry
       dockerRegistryEndpoint: ${{ parameters.registryEndpoint }}
-      dockerComposeFile: src/docker-compose.yml
+      dockerComposeFile: docker-compose.yml
       qualifyImageNames: true
       projectName: ""
       dockerComposeFileArgs: |
@@ -48,11 +47,11 @@ jobs:
       dockerComposeCommand: 'push ${{ parameters.services }}'
       containerregistrytype: Container Registry
       dockerRegistryEndpoint: ${{ parameters.registryEndpoint }}
-      dockerComposeFile: src/docker-compose.yml
+      dockerComposeFile: docker-compose.yml
       qualifyImageNames: true
       projectName: ""
       dockerComposeFileArgs: |
-        TAG=${{ variables['Build.SourceBranchName'] }}
+        TAG=${{ variables['Build.SourceBranchName'] }} 
   - task: CopyFiles@2
     inputs:
       sourceFolder: ${{ parameters.helmfrom }}
@@ -62,8 +61,7 @@ jobs:
       pathtoPublish: ${{ parameters.helmto }}
       artifactName: helm
 - job: BuildWindows
-  condition: False
-  # condition: ne('${{ variables['Build.Reason'] }}', 'PullRequest')
+  condition: ne('${{ variables['Build.Reason'] }}', 'PullRequest')
   pool:
     vmImage: 'windows-2019'
   steps:
@@ -73,7 +71,7 @@ jobs:
       dockerComposeCommand: 'build ${{ parameters.services }}'
       containerregistrytype: Container Registry
       dockerRegistryEndpoint: ${{ parameters.registryEndpoint }}
-      dockerComposeFile: src/docker-compose.yml
+      dockerComposeFile: docker-compose.yml
       qualifyImageNames: true
       projectName: ""
       dockerComposeFileArgs: |
@@ -86,9 +84,9 @@ jobs:
       dockerComposeCommand: 'push ${{ parameters.services }}'
       containerregistrytype: Container Registry
       dockerRegistryEndpoint: ${{ parameters.registryEndpoint }}
-      dockerComposeFile: src/docker-compose.yml
+      dockerComposeFile: docker-compose.yml
       qualifyImageNames: true
       projectName: ""
       dockerComposeFileArgs: |
         TAG=${{ variables['Build.SourceBranchName'] }}
-        PLATFORM=win
+        PLATFORM=win      

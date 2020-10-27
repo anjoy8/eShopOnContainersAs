@@ -2,9 +2,6 @@
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Services
 {
-    /// <summary>
-    /// 跳转服务
-    /// </summary>
     public class RedirectService : IRedirectService
     {
         public string ExtractRedirectUriFromReturnUrl(string url)

@@ -1,4 +1,4 @@
-﻿// 为项目配置绑定和minification
+﻿// Configure bundling and minification for the project.
 // More info at https://go.microsoft.com/fwlink/?LinkId=808241
 [
   {

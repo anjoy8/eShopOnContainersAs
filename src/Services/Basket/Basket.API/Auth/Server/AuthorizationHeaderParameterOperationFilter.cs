@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
@@ -7,9 +6,9 @@ using System.Linq;
 
 namespace Microsoft.eShopOnContainers.Services.Basket.API.Auth.Server
 {
-    public class AuthorizationHeaderParameterOperationFilter3 : IOperationFilter
+    public class AuthorizationHeaderParameterOperationFilter : IOperationFilter
     {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        public void Apply(Operation operation, OperationFilterContext context)
         {
             var filterPipeline = context.ApiDescription.ActionDescriptor.FilterDescriptors;
             var isAuthorized = filterPipeline.Select(filterInfo => filterInfo.Filter).Any(filter => filter is AuthorizeFilter);
@@ -18,15 +17,15 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Auth.Server
             if (isAuthorized && !allowAnonymous)
             {
                 if (operation.Parameters == null)
-                    operation.Parameters = new List<OpenApiParameter>();
+                    operation.Parameters = new List<IParameter>();
 
-
-                operation.Parameters.Add(new OpenApiParameter
+                operation.Parameters.Add(new NonBodyParameter
                 {
                     Name = "Authorization",
-                    In = ParameterLocation.Header,
+                    In = "header",
                     Description = "access token",
-                    Required = true
+                    Required = true,
+                    Type = "string"
                 });
             }
         }

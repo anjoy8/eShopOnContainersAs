@@ -3,10 +3,6 @@
     using System.Collections.Generic;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 
-    /// <summary>
-    /// 订单状态更改,
-    /// 付费集成事件
-    /// </summary>
     public class OrderStatusChangedToPaidIntegrationEvent : IntegrationEvent
     {
         public int OrderId { get; }

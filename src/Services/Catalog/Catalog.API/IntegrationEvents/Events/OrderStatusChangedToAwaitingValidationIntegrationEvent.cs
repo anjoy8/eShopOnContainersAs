@@ -3,10 +3,6 @@
     using BuildingBlocks.EventBus.Events;
     using System.Collections.Generic;
 
-    /// <summary>
-    /// 订单状态更改,
-    /// 等待验证集成事件
-    /// </summary>
     public class OrderStatusChangedToAwaitingValidationIntegrationEvent : IntegrationEvent
     {
         public int OrderId { get; }

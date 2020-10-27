@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,13 +10,11 @@ namespace Basket.API.Infrastructure.Middlewares
         private readonly RequestDelegate _next;
         private bool _mustFail;
         private readonly FailingOptions _options;
-        private readonly ILogger _logger;
-        public FailingMiddleware(RequestDelegate next, ILogger<FailingMiddleware> logger, FailingOptions options)
+        public FailingMiddleware(RequestDelegate next, FailingOptions options)
         {
             _next = next;
             _options = options;
             _mustFail = false;
-            _logger = logger;
         }
         public async Task Invoke(HttpContext context)
         {
@@ -30,7 +27,6 @@ namespace Basket.API.Infrastructure.Middlewares
 
             if (MustFail(context))
             {
-                _logger.LogInformation("Response for path {Path} will fail.", path);
                 context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "text/plain";
                 await context.Response.WriteAsync("Failed due to FailingMiddleware enabled.");
@@ -78,15 +74,8 @@ namespace Basket.API.Infrastructure.Middlewares
 
         private bool MustFail(HttpContext context)
         {
-            var rpath = context.Request.Path.Value;
-
-            if (_options.NotFilteredPaths.Any(p => p.Equals(rpath, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return false;
-            }
-
             return _mustFail &&
-                (_options.EndpointPaths.Any(x => x == rpath) 
+                (_options.EndpointPaths.Any(x => x == context.Request.Path.Value) 
                 || _options.EndpointPaths.Count == 0);
         }
     }

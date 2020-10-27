@@ -6,8 +6,6 @@ using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 using System.Linq;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
-using Microsoft.Extensions.Logging;
-using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF.Services;
 
 namespace Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF
 {
@@ -24,6 +22,7 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF
             TimesSent = 0;
             TransactionId = transactionId.ToString();
         }
+
         public Guid EventId { get; private set; }
         public string EventTypeName { get; private set; }
         [NotMapped]

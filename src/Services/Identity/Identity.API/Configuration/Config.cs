@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
 {
-    /// <summary>
-    /// 全部配置
-    /// </summary>
     public class Config
     {
         // ApiResources define the apis in your system
@@ -287,8 +284,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
 
                     AllowedScopes =
                     {
-                        "webshoppingagg",
-                        "basket"
+                        "webshoppingagg"
                     }
                 },
                 new Client

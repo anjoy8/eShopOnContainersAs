@@ -52,24 +52,21 @@ namespace Locations.FunctionalTests
                 var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
                 var content = new StringContent(BuildLocationsRequest(-122.119998, 47.690876), UTF8Encoding.UTF8, "application/json");
 
-                var client = server.CreateClient();
-
                 // Expected result
                 var expectedLocation = "REDM";
 
                 // Act
+                var response = await server.CreateClient()
+                    .PostAsync(Post.AddNewLocation, content);
 
-                var response = await client.PostAsync(Post.AddNewLocation, content);
-
-                var userLocationResponse = await client.GetAsync(Get.UserLocationBy(userId));
-                userLocationResponse.EnsureSuccessStatusCode();
+                var userLocationResponse = await server.CreateClient()
+                    .GetAsync(Get.UserLocationBy(userId));
 
                 var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
                 var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
 
-                Assert.NotNull(userLocation);
-
-                var locationResponse = await client.GetAsync(Get.LocationBy(userLocation.LocationId));
+                var locationResponse = await server.CreateClient()
+                    .GetAsync(Get.LocationBy(userLocation.LocationId));
 
                 responseBody = await locationResponse.Content.ReadAsStringAsync();
                 var location = JsonConvert.DeserializeObject<Microsoft.eShopOnContainers.Services.Locations.API.Model.Locations>(responseBody);

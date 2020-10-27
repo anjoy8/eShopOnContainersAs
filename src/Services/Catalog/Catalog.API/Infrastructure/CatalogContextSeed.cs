@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Options;
     using Model;
     using Polly;
-    using Polly.Retry;
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
@@ -19,7 +18,7 @@
 
     public class CatalogContextSeed
     {
-        public async Task SeedAsync(CatalogContext context,IWebHostEnvironment env,IOptions<CatalogSettings> settings,ILogger<CatalogContextSeed> logger)
+        public async Task SeedAsync(CatalogContext context,IHostingEnvironment env,IOptions<CatalogSettings> settings,ILogger<CatalogContextSeed> logger)
         {
             var policy = CreatePolicy(logger, nameof(CatalogContextSeed));
 
@@ -370,7 +369,7 @@
             }
         }
 
-        private AsyncRetryPolicy CreatePolicy( ILogger<CatalogContextSeed> logger, string prefix,int retries = 3)
+        private Policy CreatePolicy( ILogger<CatalogContextSeed> logger, string prefix,int retries = 3)
         {
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(

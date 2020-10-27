@@ -12,7 +12,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.O
         public String Country { get; private set; }
         public String ZipCode { get; private set; }
 
-        public Address() { }
+        private Address() { }
 
         public Address(string street, string city, string state, string country, string zipcode)
         {

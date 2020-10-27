@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace Basket.API.Infrastructure.Middlewares
 {
-    /// <summary>
-    /// 测试用户，用来通过鉴权
-    /// </summary>
     class ByPassAuthMiddleware
     {
         private readonly RequestDelegate _next;
@@ -33,15 +29,17 @@ namespace Basket.API.Infrastructure.Middlewares
                 {
                     _currentUserId = userid;
                 }
-
-                await SendOkResponse(context, $"User set to {_currentUserId}");
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "text/string";
+                await context.Response.WriteAsync($"User set to {_currentUserId}");
             }
 
             else if (path == "/noauth/reset")
             {
                 _currentUserId = null;
-
-                await SendOkResponse(context, $"User set to none. Token required for protected endpoints.");
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "text/string";
+                await context.Response.WriteAsync($"User set to none. Token required for protected endpoints.");
             }
             else
             {
@@ -63,7 +61,6 @@ namespace Basket.API.Infrastructure.Middlewares
                     var user = new ClaimsIdentity(new[] {
                     new Claim("emails", currentUserId),
                     new Claim("name", "Test user"),
-                    new Claim(ClaimTypes.Name, "Test user"),
                     new Claim("nonce", Guid.NewGuid().ToString()),
                     new Claim("ttp://schemas.microsoft.com/identity/claims/identityprovider", "ByPassAuthMiddleware"),
                     new Claim("nonce", Guid.NewGuid().ToString()),
@@ -77,13 +74,6 @@ namespace Basket.API.Infrastructure.Middlewares
 
                 await _next.Invoke(context);
             }
-        }
-
-        private async Task SendOkResponse(HttpContext context, string message)
-        {
-            context.Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-            context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync(message);
         }
     }
 }

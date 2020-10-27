@@ -3,9 +3,6 @@
     using BuildingBlocks.EventBus.Events;
     using System.Collections.Generic;
 
-    /// <summary>
-    /// 订单库存拒绝集成事件
-    /// </summary>
     public class OrderStockRejectedIntegrationEvent : IntegrationEvent
     {
         public int OrderId { get; }

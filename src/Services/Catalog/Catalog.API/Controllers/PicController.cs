@@ -13,21 +13,16 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
     [ApiController]
     public class PicController : ControllerBase
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly IHostingEnvironment _env;
         private readonly CatalogContext _catalogContext;
 
-        public PicController(IWebHostEnvironment env,
+        public PicController(IHostingEnvironment env,
             CatalogContext catalogContext)
         {
             _env = env;
             _catalogContext = catalogContext;
         }
 
-        /// <summary>
-        /// 根据商品id，下载图片
-        /// </summary>
-        /// <param name="catalogItemId"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("api/v1/catalog/items/{catalogItemId:int}/pic")]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]

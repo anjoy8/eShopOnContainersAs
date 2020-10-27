@@ -4,9 +4,6 @@ using System;
 
 namespace Microsoft.eShopOnContainers.Services.Basket.API.Services
 {
-    /// <summary>
-    /// 认证服务实现Service类
-    /// </summary>
     public class IdentityService : IIdentityService
     {
         private IHttpContextAccessor _context; 

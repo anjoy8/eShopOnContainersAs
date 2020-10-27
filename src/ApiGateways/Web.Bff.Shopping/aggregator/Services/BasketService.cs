@@ -1,9 +1,8 @@
-﻿using GrpcBasket;
-using Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Config;
+﻿using Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Config;
 using Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Linq;
+using Newtonsoft.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,106 +10,30 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Services
 {
     public class BasketService : IBasketService
     {
-        private readonly UrlsConfig _urls;
-        public readonly HttpClient _httpClient;
+        private readonly HttpClient _apiClient;
         private readonly ILogger<BasketService> _logger;
+        private readonly UrlsConfig _urls;
 
-        public BasketService(HttpClient httpClient, IOptions<UrlsConfig> config, ILogger<BasketService> logger)
+        public BasketService(HttpClient httpClient,ILogger<BasketService> logger, IOptions<UrlsConfig> config)
         {
-            _urls = config.Value;
-            _httpClient = httpClient;
+            _apiClient = httpClient;
             _logger = logger;
+            _urls = config.Value;
         }
 
-
-        public async Task<BasketData> GetById(string id)
+        public async Task<BasketData> GetByIdAsync(string id)
         {
-            return await GrpcCallerService.CallService(_urls.GrpcBasket, async channel =>
-            {
-                var client = new Basket.BasketClient(channel);
-                _logger.LogDebug("grpc client created, request = {@id}", id);
-                var response = await client.GetBasketByIdAsync(new BasketRequest { Id = id });
-                _logger.LogDebug("grpc response {@response}", response);
+            var data = await _apiClient.GetStringAsync(_urls.Basket +  UrlsConfig.BasketOperations.GetItemById(id));
+            var basket = !string.IsNullOrEmpty(data) ? JsonConvert.DeserializeObject<BasketData>(data) : null;
 
-                return MapToBasketData(response);
-            });
+            return basket;
         }
 
         public async Task UpdateAsync(BasketData currentBasket)
         {
-            await GrpcCallerService.CallService(_urls.GrpcBasket, async channel =>
-            {
-                var client = new Basket.BasketClient(channel);
-                _logger.LogDebug("Grpc update basket currentBasket {@currentBasket}", currentBasket);
-                var request = MapToCustomerBasketRequest(currentBasket);
-                _logger.LogDebug("Grpc update basket request {@request}", request);
+            var basketContent = new StringContent(JsonConvert.SerializeObject(currentBasket), System.Text.Encoding.UTF8, "application/json");
 
-                return await client.UpdateBasketAsync(request);
-            });
-        }
-
-        private BasketData MapToBasketData(CustomerBasketResponse customerBasketRequest)
-        {
-            if (customerBasketRequest == null)
-            {
-                return null;
-            }
-
-            var map = new BasketData
-            {
-                BuyerId = customerBasketRequest.Buyerid
-            };
-
-            customerBasketRequest.Items.ToList().ForEach(item =>
-            {
-                if (item.Id != null)
-                {
-                    map.Items.Add(new BasketDataItem
-                    {
-                        Id = item.Id,
-                        OldUnitPrice = (decimal)item.Oldunitprice,
-                        PictureUrl = item.Pictureurl,
-                        ProductId = item.Productid,
-                        ProductName = item.Productname,
-                        Quantity = item.Quantity,
-                        UnitPrice = (decimal)item.Unitprice
-                    });
-                }
-            });
-
-            return map;
-        }
-
-        private CustomerBasketRequest MapToCustomerBasketRequest(BasketData basketData)
-        {
-            if (basketData == null)
-            {
-                return null;
-            }
-
-            var map = new CustomerBasketRequest
-            {
-                Buyerid = basketData.BuyerId
-            };
-
-            basketData.Items.ToList().ForEach(item =>
-            {
-                if (item.Id != null)
-                {
-                    map.Items.Add(new BasketItemResponse
-                    {
-                        Id = item.Id,
-                        Oldunitprice = (double)item.OldUnitPrice,
-                        Pictureurl = item.PictureUrl,
-                        Productid = item.ProductId,
-                        Productname = item.ProductName,
-                        Quantity = item.Quantity,
-                        Unitprice = (double)item.UnitPrice
-                    });
-                }
-            });
-
-            return map;
+            await _apiClient.PostAsync(_urls.Basket + UrlsConfig.BasketOperations.UpdateBasket(), basketContent);
         }
     }
 }

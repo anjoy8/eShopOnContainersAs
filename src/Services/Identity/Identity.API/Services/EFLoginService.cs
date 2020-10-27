@@ -5,9 +5,6 @@ using Microsoft.eShopOnContainers.Services.Identity.API.Models;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Services
 {
-    /// <summary>
-    /// 登录服务
-    /// </summary>
     public class EFLoginService : ILoginService<ApplicationUser>
     {
         private UserManager<ApplicationUser> _userManager;

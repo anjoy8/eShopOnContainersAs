@@ -1,6 +1,6 @@
 export interface IBasketItem {
     id: string;
-    productId: number;
+    productId: string;
     productName: string;
     unitPrice: number;
     oldUnitPrice: number;
