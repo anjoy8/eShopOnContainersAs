@@ -19,7 +19,7 @@
     "Microsoft.eShopOnContainers.Services.Ordering.API": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:55102/",
+      "launchUrl": "https://localhost:5102",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
