@@ -14,7 +14,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Model
         public decimal Price { get; set; }
 
         public string PictureFileName { get; set; }
-        public string PictureType { get; set; }
 
         public string PictureUri { get; set; }
 

@@ -25,9 +25,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Infrastructure.Entity
             builder.Property(ci => ci.PictureFileName)
                 .IsRequired(false);
 
-            builder.Property(ci => ci.PictureType)
-                .IsRequired(false);
-
             builder.Ignore(ci => ci.PictureUri);
 
             builder.HasOne(ci => ci.CatalogBrand)
