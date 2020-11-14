@@ -19,6 +19,8 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Model
 
         public int CatalogTypeId { get; set; }
 
+        public string Tests { get; set; }
+
         public CatalogType CatalogType { get; set; }
 
         public int CatalogBrandId { get; set; }
