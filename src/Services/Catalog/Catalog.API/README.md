@@ -14,7 +14,6 @@ Catalog microservice（目录微服务）维护着所有产品信息，包括库
 
 
 - [x] 单层架构`CURD` + 事件总线；
-- [x] `EFCore` + `Sql Server`；
 
 - [x] 没有授权认证，不需要；
 - [x] 没有仓储，efcore直接用；
@@ -27,12 +26,15 @@ Catalog microservice（目录微服务）维护着所有产品信息，包括库
 - [x] 单元测试+功能测试；  
 - [x] `Grpc`；
 
+- [x] `EFCore` + `Sql Server`；
+- [x] `Restful api` + 状态码 ；
+- [x] 充血模型；
+
 - [ ] `Polly`  Retry机制；
 - [ ] 压缩/解压文件；
-- [ ] `Restful api` + 状态码 ；
-- [ ] 充血模型；
-- [ ] 上传图片；
+- [ ] 下载图片；
 - [ ] `IOptionsSnapshot`热更新；
+
 - [ ] 集成事件/事件日志`EventLog`；
 - [ ] 事件服务`EventService`；
 
