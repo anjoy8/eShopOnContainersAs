@@ -1,4 +1,7 @@
 ## 讲解服务目录
+### 视频讲解
+https://www.bilibili.com/video/BV1nT4y1L7vd
+
 ### Identity.API
 https://github.com/anjoy8/eShopOnContainers/tree/dev/src/Services/Identity/Identity.API
 
